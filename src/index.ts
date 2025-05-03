@@ -1,7 +1,2 @@
-
-
-async function main(): Promise<void> {
-
-}
-
-main();
+export * from "./math/vector";
+export * from "./math/matrix";

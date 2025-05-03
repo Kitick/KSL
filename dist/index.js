@@ -1,4 +1,2 @@
-"use strict";
-async function main() {
-}
-main();
+export * from "./math/vector";
+export * from "./math/matrix";

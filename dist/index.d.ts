@@ -1,1 +1,2 @@
-declare function main(): Promise<void>;
+export * from "./math/vector";
+export * from "./math/matrix";

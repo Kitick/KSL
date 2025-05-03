@@ -1,0 +1,17 @@
+{
+	"name": "ksl",
+	"version": "1.0.0",
+	"description": "Kiticks Standard Library",
+	"main": "index.min.js",
+	"scripts": {
+		"build": "esbuild app/server.ts --bundle --format=cjs --platform=node --outfile=index.min.js",
+		"start": "npm run build && node index.min.js"
+	},
+	"author": "Kevin Munson",
+	"license": "ISC",
+	"devDependencies": {
+		"@types/node": "^22.14.0",
+		"esbuild": "^0.25.2",
+		"typescript": "^5.8.3"
+	}
+}

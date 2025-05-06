@@ -1,15 +1,3 @@
-export declare namespace Vector {
-    type Cart = {
-        x?: number;
-        y?: number;
-        z?: number;
-    };
-    type Polar = {
-        mag?: number;
-        theta?: number;
-        phi?: number;
-    };
-}
 export declare class Vector {
     private comp;
     private dirty;
@@ -58,4 +46,16 @@ export declare class Vector {
     distance(other: Vector): number;
     equals(other: Vector): boolean;
     toString(): string;
+}
+export declare namespace Vector {
+    type Cart = {
+        x?: number;
+        y?: number;
+        z?: number;
+    };
+    type Polar = {
+        mag?: number;
+        theta?: number;
+        phi?: number;
+    };
 }

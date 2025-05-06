@@ -1,10 +1,5 @@
 import * as constants from "./constants";
 
-export namespace Vector {
-	export type Cart = { x?: number; y?: number; z?: number };
-	export type Polar = { mag?: number; theta?: number; phi?: number };
-}
-
 export class Vector {
 	private comp = { x: 0, y: 0, z: 0, mag: 0, theta: 0, phi: 0 };
 
@@ -156,4 +151,9 @@ export class Vector {
 	}
 
 	toString(): string { return `(${this.x}, ${this.y}, ${this.z})`; }
+}
+
+export namespace Vector {
+	export type Cart = { x?: number; y?: number; z?: number };
+	export type Polar = { mag?: number; theta?: number; phi?: number };
 }

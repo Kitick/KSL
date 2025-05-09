@@ -1,6 +1,6 @@
 {
 	"name": "ksl",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"description": "Kiticks Standard Library",
 	"license": "ISC",
 	"author": "Kevin Munson",
@@ -10,10 +10,21 @@
 		"type": "git",
 		"url": "https://github.com/Kitick/KSL.git"
 	},
-	"files":[
-		"dist",
-		"README.md"
-	],
+	"files": [ "dist", "README.md" ],
+	"exports": {
+		".": {
+			"import": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		},
+		"./math": {
+			"import": "./dist/math/index.js",
+			"types": "./dist/math/index.d.ts"
+		},
+		"./structures": {
+			"import": "./dist/structures/index.js",
+			"types": "./dist/structures/index.d.ts"
+		}
+	},
 	"scripts": {
 		"build": "rimraf dist && tsc",
 		"start": "npm run build && node ."

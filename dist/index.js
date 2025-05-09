@@ -1,4 +1,6 @@
-export * from "./math/vector";
-export * from "./math/matrix";
-export * from "./structures/bimap";
-// TODO: change this to be import via folder instead of global
+import * as mathlib from "./math/index";
+import * as structurelib from "./structures/index";
+export const math = mathlib;
+export const structures = structurelib;
+export * from "./math/index";
+export * from "./structures/index";

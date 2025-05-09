@@ -1,7 +1,9 @@
 import * as constants from "./constants";
 
+const enum Axis { X, Y, Z, R, T, P }
+
 export class Vector {
-	private comp = { x: 0, y: 0, z: 0, mag: 0, theta: 0, phi: 0 };
+	private comp: Array<number> = [ 0, 0, 0, 0, 0, 0 ];
 
 	private dirty: boolean = false;
 
@@ -11,63 +13,84 @@ export class Vector {
 	constructor(polar: Vector.Polar);
 
 	constructor(input: Vector | Vector.Cart & Vector.Polar = {}) {
-		console.log("new Vector", input);
+		if(input instanceof Vector){
+			this.setCart(input.x, input.y, input.z);
+			return this;
+		}
+
 		this.set(input);
 	}
 
-	get x(): number { return this.comp.x; }
-	get y(): number { return this.comp.y; }
-	get z(): number { return this.comp.z; }
+	private getCart(): Array<number> { return this.comp.slice(0, 3); }
 
-	get mag(): number { return this.polar.mag; }
-	get theta(): number { return this.polar.theta; }
-	get phi(): number { return this.polar.phi; }
-
-	set x(x: number){ this.set({ x }) }
-	set y(y: number){ this.set({ y }) }
-	set z(z: number){ this.set({ z }) }
-
-	set mag(mag: number){ this.set({ mag }) }
-	set theta(theta: number){ this.set({ theta }) }
-	set phi(phi: number){ this.set({ phi }) }
-
-	get cart(): { x: number; y: number; z: number } { return { x: this.x, y: this.y, z: this.z }; }
-	get polar(): { mag: number; theta: number; phi: number } {
+	private getPolar(): Array<number> {
 		if(this.dirty){ this.updatePolar(); }
-		return { mag: this.comp.mag, theta: this.comp.theta, phi: this.comp.phi };
+		return this.comp.slice(3, 6);
+	}
+
+	private setCart(x: number, y: number, z: number): void {
+		this.comp[Axis.X] = x;
+		this.comp[Axis.Y] = y;
+		this.comp[Axis.Z] = z;
+
+		this.dirty = true;
+	}
+
+	private setPolar(mag: number, theta: number, phi: number): void {
+		this.comp[Axis.R] = mag;
+		this.comp[Axis.T] = theta;
+		this.comp[Axis.P] = phi;
+
+		this.updateCart();
+	}
+
+	get x(): number { return this.comp[Axis.X]; }
+	get y(): number { return this.comp[Axis.Y]; }
+	get z(): number { return this.comp[Axis.Z]; }
+
+	set x(x: number){ this.comp[Axis.X] = x; }
+	set y(y: number){ this.comp[Axis.Y] = y; }
+	set z(z: number){ this.comp[Axis.Z] = z; }
+
+	get mag(): number { return this.getPolar()[Axis.R]; }
+	get theta(): number { return this.getPolar()[Axis.T]; }
+	get phi(): number { return this.getPolar()[Axis.P]; }
+
+	set mag(mag: number){ this.setPolar(mag, this.theta, this.phi); }
+	set theta(theta: number){ this.setPolar(this.mag, theta, this.phi); }
+	set phi(phi: number){ this.setPolar(this.mag, this.theta, phi); }
+
+	get cart(): { x: number; y: number; z: number } {
+		const [ x, y, z ] = this.getCart();
+		return { x, y, z };
+	}
+
+	get polar(): { mag: number; theta: number; phi: number } {
+		const [ mag, theta, phi ] = this.getPolar();
+		return { mag, theta, phi };
 	}
 
 	clone(): Vector { return new Vector(this); }
 
-	set(other: Vector): this;
 	set(cart: Vector.Cart): this;
 	set(polar: Vector.Polar): this;
 
-	set(input: Vector | Vector.Cart & Vector.Polar = {}): this {
-		if(input instanceof Vector){
-			this.comp.x = input.x;
-			this.comp.y = input.y;
-			this.comp.z = input.z;
-
-			this.dirty = true;
-			return this;
-		}
-
+	set(input: Vector.Cart & Vector.Polar = {}): this {
 		const { x, y, z, mag, theta, phi } = input;
 
 		if(x !== undefined || y !== undefined || z !== undefined){
-			if(x !== undefined){ this.comp.x = x; }
-			if(y !== undefined){ this.comp.y = y; }
-			if(z !== undefined){ this.comp.z = z; }
+			if(x !== undefined){ this.x = x; }
+			if(y !== undefined){ this.y = y; }
+			if(z !== undefined){ this.z = z; }
 
 			this.dirty = true;
 		}
 		else if(mag !== undefined || theta !== undefined || phi !== undefined){
 			if(this.dirty){ this.updatePolar(); }
 
-			if(mag !== undefined){ this.comp.mag = mag; }
-			if(theta !== undefined){ this.comp.theta = theta; }
-			if(phi !== undefined){ this.comp.phi = phi; }
+			if(mag !== undefined){ this.comp[Axis.R] = mag; }
+			if(theta !== undefined){ this.comp[Axis.T] = theta; }
+			if(phi !== undefined){ this.comp[Axis.P] = phi; }
 
 			this.updateCart();
 		}
@@ -76,28 +99,29 @@ export class Vector {
 	}
 
 	private updateCart(): void {
-		let { mag, theta, phi } = this.comp;
+		let [ mag, theta, phi ] = this.getPolar();
 
 		theta *= constants.DEG_RAD;
 		phi *= constants.DEG_RAD;
 
-		this.comp.x = mag * Math.cos(phi) * Math.cos(theta);
-		this.comp.y = mag * Math.cos(phi) * Math.sin(theta);
-		this.comp.z = mag * Math.sin(phi);
+		const x = mag * Math.cos(phi) * Math.cos(theta);
+		const y = mag * Math.cos(phi) * Math.sin(theta);
+		const z = mag * Math.sin(phi);
 
+		this.setCart(x, y, z);
 		this.dirty = false;
 	}
 
 	private updatePolar(): void {
-		const { x, y, z } = this.comp;
+		const [ x, y, z ] = this.getCart();
 
 		const x2 = x * x; const y2 = y * y; const z2 = z * z;
 
-		this.comp.mag = Math.sqrt(x2 + y2 + z2);
-		this.comp.theta = Math.atan2(y, x) * constants.RAD_DEG;
-		this.comp.phi = Math.atan2(z, Math.sqrt(x2 + y2)) * constants.RAD_DEG;
+		const mag = Math.sqrt(x2 + y2 + z2);
+		const theta = Math.atan2(y, x) * constants.RAD_DEG;
+		const phi = Math.atan2(z, Math.sqrt(x2 + y2)) * constants.RAD_DEG;
 
-		this.dirty = false;
+		this.setPolar(mag, theta, phi);
 	}
 
 	inverse(): this { return this.set({ x: 1 / this.x, y: 1 / this.y, z: 1 / this.z }); }

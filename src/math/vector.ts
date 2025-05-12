@@ -1,183 +1,165 @@
-import * as constants from "./constants";
+type Length<A extends Array<any>> = A["length"];
 
-const enum Axis { X, Y, Z, R, T, P }
+export class Vector<N extends number> {
+	private data: Array<number>;
 
-export class Vector {
-	private comp: Array<number> = [ 0, 0, 0, 0, 0, 0 ];
+	private constructor(data: Array<number>) {
+		this.data = data;
+	}
 
-	private dirty: boolean = false;
+	static new<A extends Array<number>>(...data: A): Vector<Length<A>>;
+	static new<N extends number>(...data: Array<number>): Vector<N>;
 
-	constructor();
-	constructor(vector: Vector);
-	constructor(cart: Vector.Cart);
-	constructor(polar: Vector.Polar);
+	static new<A extends Array<number>>(...data: A): Vector<Length<A>> {
+		return new Vector(data);
+	}
 
-	constructor(input: Vector | Vector.Cart & Vector.Polar = {}) {
-		if(input instanceof Vector){
-			this.setCart(input.x, input.y, input.z);
-			return this;
+	copy(): Vector<N> {
+		return new Vector([...this.data]);
+	}
+
+	static zero<N extends number>(n: N): Vector<N> {
+		return new Vector(new Array(n).fill(0));
+	}
+
+	get size(): N { return this.data.length as N; }
+
+	private static bitwise<T>(a: Array<T>, b: Array<T>, fn: (a: T, b: T, i: number) => T): Array<T> {
+		const n = Math.max(a.length, b.length);
+		const result: T[] = new Array(n);
+
+		for(let i = 0; i < n; i++){
+			result[i] = fn(a[i], b[i], i);
 		}
 
-		this.set(input);
+		return result;
 	}
 
-	private getCart(): Array<number> { return this.comp.slice(0, 3); }
-
-	private getPolar(): Array<number> {
-		if(this.dirty){ this.updatePolar(); }
-		return this.comp.slice(3, 6);
+	negate(): Vector<N> {
+		const data = Vector.bitwise(this.data, this.data, i => -i);
+		return new Vector(data);
 	}
 
-	private setCart(x: number, y: number, z: number): void {
-		this.comp[Axis.X] = x;
-		this.comp[Axis.Y] = y;
-		this.comp[Axis.Z] = z;
-
-		this.dirty = true;
+	inverse(): Vector<N> {
+		const data = Vector.bitwise(this.data, this.data, i => 1 / i);
+		return new Vector(data);
 	}
 
-	private setPolar(mag: number, theta: number, phi: number): void {
-		this.comp[Axis.R] = mag;
-		this.comp[Axis.T] = theta;
-		this.comp[Axis.P] = phi;
-
-		this.updateCart();
+	scale(scalar: number): Vector<N> {
+		const data = Vector.bitwise(this.data, this.data, i => i * scalar);
+		return new Vector(data);
 	}
 
-	get x(): number { return this.comp[Axis.X]; }
-	get y(): number { return this.comp[Axis.Y]; }
-	get z(): number { return this.comp[Axis.Z]; }
-
-	set x(x: number){ this.comp[Axis.X] = x; }
-	set y(y: number){ this.comp[Axis.Y] = y; }
-	set z(z: number){ this.comp[Axis.Z] = z; }
-
-	get mag(): number { return this.getPolar()[Axis.R]; }
-	get theta(): number { return this.getPolar()[Axis.T]; }
-	get phi(): number { return this.getPolar()[Axis.P]; }
-
-	set mag(mag: number){ this.setPolar(mag, this.theta, this.phi); }
-	set theta(theta: number){ this.setPolar(this.mag, theta, this.phi); }
-	set phi(phi: number){ this.setPolar(this.mag, this.theta, phi); }
-
-	get cart(): { x: number; y: number; z: number } {
-		const [ x, y, z ] = this.getCart();
-		return { x, y, z };
+	add(other: Vector<N>): Vector<N> {
+		const data = Vector.bitwise(this.data, other.data, (i, i2) => i + i2);
+		return new Vector(data);
 	}
 
-	get polar(): { mag: number; theta: number; phi: number } {
-		const [ mag, theta, phi ] = this.getPolar();
-		return { mag, theta, phi };
+	sub(other: Vector<N>): Vector<N> {
+		const data = Vector.bitwise(this.data, other.data, (i, i2) => i - i2);
+		return new Vector(data);
 	}
 
-	clone(): Vector { return new Vector(this); }
+	mul(other: Vector<N>): Vector<N> {
+		const data = Vector.bitwise(this.data, other.data, (i, i2) => i * i2);
+		return new Vector(data);
+	}
 
-	set(cart: Vector.Cart): this;
-	set(polar: Vector.Polar): this;
+	div(other: Vector<N>): Vector<N> {
+		const data = Vector.bitwise(this.data, other.data, (i, i2) => i / i2);
+		return new Vector(data);
+	}
 
-	set(input: Vector.Cart & Vector.Polar = {}): this {
-		const { x, y, z, mag, theta, phi } = input;
+	project<N extends number>(dim: N): Vector<N> {
+		const data = new Array(dim);
 
-		if(x !== undefined || y !== undefined || z !== undefined){
-			if(x !== undefined){ this.x = x; }
-			if(y !== undefined){ this.y = y; }
-			if(z !== undefined){ this.z = z; }
-
-			this.dirty = true;
-		}
-		else if(mag !== undefined || theta !== undefined || phi !== undefined){
-			if(this.dirty){ this.updatePolar(); }
-
-			if(mag !== undefined){ this.comp[Axis.R] = mag; }
-			if(theta !== undefined){ this.comp[Axis.T] = theta; }
-			if(phi !== undefined){ this.comp[Axis.P] = phi; }
-
-			this.updateCart();
+		for(let i = 0; i < dim; i++){
+			data[i] = this.data[i] ?? 0;
 		}
 
-		return this;
+		return new Vector(data);
 	}
 
-	private updateCart(): void {
-		let [ mag, theta, phi ] = this.getPolar();
-
-		theta *= constants.DEG_RAD;
-		phi *= constants.DEG_RAD;
-
-		const x = mag * Math.cos(phi) * Math.cos(theta);
-		const y = mag * Math.cos(phi) * Math.sin(theta);
-		const z = mag * Math.sin(phi);
-
-		this.setCart(x, y, z);
-		this.dirty = false;
+	magnitude(): number {
+		const sum = this.data.reduce((sum, i) => sum + i * i, 0);
+		return Math.sqrt(sum);
 	}
 
-	private updatePolar(): void {
-		const [ x, y, z ] = this.getCart();
+	normalize(value: number = 1): Vector<N> {
+		const mag = this.magnitude();
+		if(mag === 0){ return this.copy(); }
+
+		return this.scale(value / mag);
+	}
+
+	distance(other: Vector<N>): number {
+		let sum = 0;
+		for(let i = 0, n = this.data.length; i < n; i++){
+			const diff = this.data[i] - other.data[i];
+			sum += diff * diff;
+		}
+
+		return Math.sqrt(sum);
+	}
+
+	cross(this: Vector<3>, other: Vector<3>): Vector<3>;
+	cross(this: Vector<2>, other: Vector<2>): number;
+
+	cross(this: Vector<2 | 3>, other: Vector<2 | 3>): Vector<3> | number {
+		const [a1, a2, a3] = this.data;
+		const [b1, b2, b3] = other.data;
+
+		const z = a1 * b2 - a2 * b1;
+		if(this.size === 2){ return z; }
+
+		const x = a2 * b3 - a3 * b2;
+		const y = a3 * b1 - a1 * b3;
+
+		return new Vector([x, y, z]);
+	}
+
+	dot(other: Vector<N>): number {
+		let sum = 0;
+		for(let i = 0, n = this.data.length; i < n; i++){
+			sum += this.data[i] * other.data[i];
+		}
+
+		return sum;
+	}
+
+	angle(other: Vector<N>): number {
+		const dot = this.dot(other);
+		const mag = this.magnitude() * other.magnitude();
+
+		if(mag === 0){ return 0; }
+
+		return Math.acos(dot / mag);
+	}
+
+	equals(other: Vector<N>): boolean {
+		for(let i = 0, n = this.data.length; i < n; i++){
+			if(this.data[i] !== other.data[i]){ return false; }
+		}
+
+		return true;
+	}
+
+	polar(this: Vector<1 | 2 | 3>): {mag: number, theta: number, phi: number} {
+		let [ x, y, z ] = this.data;
+
+		if(this.size < 3){ z = 0; }
+		if(this.size < 2){ y = 0; }
 
 		const x2 = x * x; const y2 = y * y; const z2 = z * z;
 
 		const mag = Math.sqrt(x2 + y2 + z2);
-		const theta = Math.atan2(y, x) * constants.RAD_DEG;
-		const phi = Math.atan2(z, Math.sqrt(x2 + y2)) * constants.RAD_DEG;
+		const theta = Math.atan2(y, x);
+		const phi = Math.atan2(z, Math.sqrt(x2 + y2));
 
-		this.setPolar(mag, theta, phi);
+		return { mag, theta, phi };
 	}
 
-	inverse(): this { return this.set({ x: 1 / this.x, y: 1 / this.y, z: 1 / this.z }); }
-
-	add(other: Vector): this { return this.set({ x: this.x + other.x, y: this.y + other.y, z: this.z + other.z }); }
-	sub(other: Vector): this { return this.set({ x: this.x - other.x, y: this.y - other.y, z: this.z - other.z }); }
-
-	mul(other: Vector): this { return this.set({ x: this.x * other.x, y: this.y * other.y, z: this.z * other.z }); }
-	div(other: Vector): this { return this.set({ x: this.x / other.x, y: this.y / other.y, z: this.z / other.z }); }
-
-	scale(scalar: number): this { return this.set({ x: this.x * scalar, y: this.y * scalar, z: this.z * scalar }); }
-
-	normalize(): this {
-		const mag = this.mag;
-		if(mag === 0){ return this; }
-
-		return this.scale(1 / mag);
+	toString(): string {
+		return this.data.join(", ");
 	}
-
-	cross(other: Vector): Vector {
-		return new Vector().set({
-			x: this.y * other.z - this.z * other.y,
-			y: this.z * other.x - this.x * other.z,
-			z: this.x * other.y - this.y * other.x,
-		});
-	}
-
-	dot(other: Vector): number {
-		return this.x * other.x + this.y * other.y + this.z * other.z;
-	}
-
-	angle(other: Vector): number {
-		const dot = this.dot(other);
-		const mag = this.mag * other.mag;
-
-		if(mag === 0){ return 0; }
-
-		return Math.acos(dot / mag) * constants.RAD_DEG;
-	}
-
-	distance(other: Vector): number {
-		const dx = this.x - other.x;
-		const dy = this.y - other.y;
-		const dz = this.z - other.z;
-
-		return Math.sqrt(dx * dx + dy * dy + dz * dz);
-	}
-
-	equals(other: Vector): boolean {
-		return this.x === other.x && this.y === other.y && this.z === other.z;
-	}
-
-	toString(): string { return `(${this.x}, ${this.y}, ${this.z})`; }
-}
-
-export namespace Vector {
-	export type Cart = { x?: number; y?: number; z?: number };
-	export type Polar = { mag?: number; theta?: number; phi?: number };
 }

@@ -1,61 +1,34 @@
-export declare class Vector {
-    private comp;
-    private dirty;
-    constructor();
-    constructor(vector: Vector);
-    constructor(cart: Vector.Cart);
-    constructor(polar: Vector.Polar);
-    get x(): number;
-    get y(): number;
-    get z(): number;
-    get mag(): number;
-    get theta(): number;
-    get phi(): number;
-    set x(x: number);
-    set y(y: number);
-    set z(z: number);
-    set mag(mag: number);
-    set theta(theta: number);
-    set phi(phi: number);
-    get cart(): {
-        x: number;
-        y: number;
-        z: number;
-    };
-    get polar(): {
+type Length<A extends Array<any>> = A["length"];
+export declare class Vector<N extends number> {
+    private data;
+    private constructor();
+    static new<A extends Array<number>>(...data: A): Vector<Length<A>>;
+    static new<N extends number>(...data: Array<number>): Vector<N>;
+    copy(): Vector<N>;
+    static zero<N extends number>(n: N): Vector<N>;
+    get size(): N;
+    private static bitwise;
+    negate(): Vector<N>;
+    inverse(): Vector<N>;
+    scale(scalar: number): Vector<N>;
+    add(other: Vector<N>): Vector<N>;
+    sub(other: Vector<N>): Vector<N>;
+    mul(other: Vector<N>): Vector<N>;
+    div(other: Vector<N>): Vector<N>;
+    project<N extends number>(dim: N): Vector<N>;
+    magnitude(): number;
+    normalize(value?: number): Vector<N>;
+    distance(other: Vector<N>): number;
+    cross(this: Vector<3>, other: Vector<3>): Vector<3>;
+    cross(this: Vector<2>, other: Vector<2>): number;
+    dot(other: Vector<N>): number;
+    angle(other: Vector<N>): number;
+    equals(other: Vector<N>): boolean;
+    polar(this: Vector<1 | 2 | 3>): {
         mag: number;
         theta: number;
         phi: number;
     };
-    clone(): Vector;
-    set(other: Vector): this;
-    set(cart: Vector.Cart): this;
-    set(polar: Vector.Polar): this;
-    private updateCart;
-    private updatePolar;
-    inverse(): this;
-    add(other: Vector): this;
-    sub(other: Vector): this;
-    mul(other: Vector): this;
-    div(other: Vector): this;
-    scale(scalar: number): this;
-    normalize(): this;
-    cross(other: Vector): Vector;
-    dot(other: Vector): number;
-    angle(other: Vector): number;
-    distance(other: Vector): number;
-    equals(other: Vector): boolean;
     toString(): string;
 }
-export declare namespace Vector {
-    type Cart = {
-        x?: number;
-        y?: number;
-        z?: number;
-    };
-    type Polar = {
-        mag?: number;
-        theta?: number;
-        phi?: number;
-    };
-}
+export {};

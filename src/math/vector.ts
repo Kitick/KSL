@@ -1,3 +1,5 @@
+import * as Unit from "./constants";
+
 type Length<A extends Array<any>> = A["length"];
 
 export class Vector<N extends number> {
@@ -127,13 +129,13 @@ export class Vector<N extends number> {
 		return sum;
 	}
 
-	angle(other: Vector<N>): number {
+	angle(other: Vector<N>): Unit.RAD {
 		const dot = this.dot(other);
 		const mag = this.magnitude() * other.magnitude();
 
-		if(mag === 0){ return 0; }
+		if(mag === 0){ return 0 as Unit.RAD; }
 
-		return Math.acos(dot / mag);
+		return Math.acos(dot / mag) as Unit.RAD;
 	}
 
 	equals(other: Vector<N>): boolean {
@@ -144,7 +146,7 @@ export class Vector<N extends number> {
 		return true;
 	}
 
-	polar(this: Vector<1 | 2 | 3>): {mag: number, theta: number, phi: number} {
+	polar(this: Vector<1 | 2 | 3>): {mag: number, theta: Unit.RAD, phi: Unit.RAD} {
 		let [ x, y, z ] = this.data;
 
 		if(this.size < 3){ z = 0; }
@@ -153,8 +155,8 @@ export class Vector<N extends number> {
 		const x2 = x * x; const y2 = y * y; const z2 = z * z;
 
 		const mag = Math.sqrt(x2 + y2 + z2);
-		const theta = Math.atan2(y, x);
-		const phi = Math.atan2(z, Math.sqrt(x2 + y2));
+		const theta = Math.atan2(y, x) as Unit.RAD;
+		const phi = Math.atan2(z, Math.sqrt(x2 + y2)) as Unit.RAD;
 
 		return { mag, theta, phi };
 	}

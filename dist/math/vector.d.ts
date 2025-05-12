@@ -1,3 +1,4 @@
+import * as Unit from "./constants";
 type Length<A extends Array<any>> = A["length"];
 export declare class Vector<N extends number> {
     private data;
@@ -22,12 +23,12 @@ export declare class Vector<N extends number> {
     cross(this: Vector<3>, other: Vector<3>): Vector<3>;
     cross(this: Vector<2>, other: Vector<2>): number;
     dot(other: Vector<N>): number;
-    angle(other: Vector<N>): number;
+    angle(other: Vector<N>): Unit.RAD;
     equals(other: Vector<N>): boolean;
     polar(this: Vector<1 | 2 | 3>): {
         mag: number;
-        theta: number;
-        phi: number;
+        theta: Unit.RAD;
+        phi: Unit.RAD;
     };
     toString(): string;
 }

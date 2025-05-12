@@ -1,4 +1,7 @@
-export class Vector {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Vector = void 0;
+class Vector {
     data;
     constructor(data) {
         this.data = data;
@@ -129,3 +132,4 @@ export class Vector {
         return this.data.join(", ");
     }
 }
+exports.Vector = Vector;

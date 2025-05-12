@@ -1,4 +1,7 @@
-export class BiMap {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BiMap = void 0;
+class BiMap {
     forward = new Map();
     backward = new Map();
     get size() { return this.forward.size; }
@@ -43,3 +46,4 @@ export class BiMap {
         this.backward.clear();
     }
 }
+exports.BiMap = BiMap;

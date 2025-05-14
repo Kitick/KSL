@@ -1,7 +1,7 @@
 {
 	"name": "ksl",
-	"version": "0.4.1",
-	"description": "Kiticks Standard Library",
+	"version": "0.4.2",
+	"description": "Kitick's Standard Library",
 	"license": "ISC",
 	"author": "Kevin Munson",
 	"main": "dist/index.js",
@@ -15,10 +15,6 @@
 		"README.md"
 	],
 	"exports": {
-		".": {
-			"import": "./dist/index.js",
-			"types": "./dist/index.d.ts"
-		},
 		"./math": {
 			"import": "./dist/math/index.js",
 			"types": "./dist/math/index.d.ts"

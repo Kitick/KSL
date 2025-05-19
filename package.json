@@ -1,9 +1,10 @@
 {
 	"name": "ksl",
-	"version": "0.5.1",
+	"version": "0.5.2",
 	"description": "Kitick's Standard Library",
 	"license": "ISC",
 	"author": "Kevin Munson",
+	"private": true,
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/Kitick/KSL.git"
@@ -27,14 +28,13 @@
 		}
 	},
 	"scripts": {
-		"build": "rimraf dist && tsc",
-		"postbuild": "esbuild test/index.ts --bundle --format=cjs --platform=browser --outfile=test/index.js",
+		"prepare": "tsc",
+		"build": "esbuild test/index.ts --bundle --format=cjs --platform=browser --outfile=test/index.js",
 		"test": "npm run build && node test/index.js"
 	},
 	"devDependencies": {
 		"@types/node": "^22.15.17",
 		"esbuild": "^0.25.4",
-		"rimraf": "^6.0.1",
 		"ts-brand": "^0.2.0",
 		"typescript": "^5.8.3"
 	}

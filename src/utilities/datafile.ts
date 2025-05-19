@@ -5,6 +5,8 @@ export class DataFile<T> {
 	private data: Map<string, T> = new Map();
 	private path!: string;
 
+	log: boolean = false;
+
 	constructor(path: string) { this.filepath = path; }
 
 	get filepath(): string { return this.path; }
@@ -13,12 +15,12 @@ export class DataFile<T> {
 	private async loadFile(): Promise<Record<string, T>> {
 		const raw = await FS.readFile(this.path, "utf-8")
 		.catch(error => {
-			console.log(`Loading... ${this.path}`);
-			if(error.code === "ENOENT"){ return "{}"; }
-			throw error;
+			if(error.code !== "ENOENT"){ throw error; }
+			if(this.log){ console.warn(`${this.path} does not exist`); }
+			return "{}";
 		});
 
-		console.log(`Loaded ${this.path}`);
+		if(this.log){ console.log(`Loaded ${this.path}`); }
 
 		return JSON.parse(raw);
 	}
@@ -26,13 +28,9 @@ export class DataFile<T> {
 	private async saveFile(data: Record<string, T>): Promise<void> {
 		const raw = JSON.stringify(data, undefined, "\t");
 
-		await FS.writeFile(this.path, raw)
-		.catch(error => {
-			console.log(`Saving... ${this.path}`);
-			throw error;
-		});
+		await FS.writeFile(this.path, raw);
 
-		console.log(`Saved ${this.path}`);
+		if(this.log){ console.log(`Saved ${this.path}`); }
 	}
 
 	async refresh(): Promise<void> {
@@ -45,9 +43,9 @@ export class DataFile<T> {
 		await this.saveFile(obj);
 	}
 
-	keys(): string[] {return Array.from(this.data.keys()); }
-	values(): T[] { return Array.from(this.data.values()); }
-	entries(): [string, T][] { return Array.from(this.data.entries()); }
+	keys(): Array<string> {return Array.from(this.data.keys()); }
+	values(): Array<T> { return Array.from(this.data.values()); }
+	entries(): Array<[string, T]> { return Array.from(this.data.entries()); }
 
 	has(id: string): boolean {
 		return this.data.has(id);
@@ -67,18 +65,18 @@ export class DataFile<T> {
 		return this;
 	}
 
-	loadState<T2 extends T>(id: string, target: T2, set: Array<keyof T>): T2 {
+	loadState<O extends T>(id: string, target: O, set: Array<keyof T>): O {
 		const data = this.load(id);
 		if(data === undefined){ throw new Error(`${id} does not exist`); }
 
 		set.forEach(key => {
-			target[key] = data![key] as T2[keyof T];
+			target[key] = data![key] as O[keyof T];
 		});
 
 		return target;
 	}
 
-	saveState<T2 extends T>(id: string, target: T2, set: Array<keyof T>): this {
+	saveState<O extends T>(id: string, target: O, set: Array<keyof T>): this {
 		const data = {} as T;
 
 		set.forEach(key => {

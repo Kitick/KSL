@@ -9,29 +9,32 @@ const path_1 = __importDefault(require("path"));
 class DataFile {
     data = new Map();
     path;
+    log = false;
     constructor(path) { this.filepath = path; }
     get filepath() { return this.path; }
     set filepath(path) { this.path = path_1.default.resolve(path); }
     async loadFile() {
         const raw = await promises_1.default.readFile(this.path, "utf-8")
             .catch(error => {
-            console.log(`Loading... ${this.path}`);
-            if (error.code === "ENOENT") {
-                return "{}";
+            if (error.code !== "ENOENT") {
+                throw error;
             }
-            throw error;
+            if (this.log) {
+                console.warn(`${this.path} does not exist`);
+            }
+            return "{}";
         });
-        console.log(`Loaded ${this.path}`);
+        if (this.log) {
+            console.log(`Loaded ${this.path}`);
+        }
         return JSON.parse(raw);
     }
     async saveFile(data) {
         const raw = JSON.stringify(data, undefined, "\t");
-        await promises_1.default.writeFile(this.path, raw)
-            .catch(error => {
-            console.log(`Saving... ${this.path}`);
-            throw error;
-        });
-        console.log(`Saved ${this.path}`);
+        await promises_1.default.writeFile(this.path, raw);
+        if (this.log) {
+            console.log(`Saved ${this.path}`);
+        }
     }
     async refresh() {
         const obj = await this.loadFile();

@@ -1,6 +1,7 @@
 export declare class DataFile<T> {
     private data;
     private path;
+    log: boolean;
     constructor(path: string);
     get filepath(): string;
     set filepath(path: string);
@@ -8,13 +9,13 @@ export declare class DataFile<T> {
     private saveFile;
     refresh(): Promise<void>;
     commit(): Promise<void>;
-    keys(): string[];
-    values(): T[];
-    entries(): [string, T][];
+    keys(): Array<string>;
+    values(): Array<T>;
+    entries(): Array<[string, T]>;
     has(id: string): boolean;
     load(id: string): T | undefined;
     save(id: string, data: T): this;
     delete(id: string): this;
-    loadState<T2 extends T>(id: string, target: T2, set: Array<keyof T>): T2;
-    saveState<T2 extends T>(id: string, target: T2, set: Array<keyof T>): this;
+    loadState<O extends T>(id: string, target: O, set: Array<keyof T>): O;
+    saveState<O extends T>(id: string, target: O, set: Array<keyof T>): this;
 }

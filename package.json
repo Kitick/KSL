@@ -1,10 +1,10 @@
 {
 	"name": "ksl",
-	"version": "0.7.0",
+	"version": "0.7.1",
 	"description": "Kitick's Standard Library",
+	"private": true,
 	"license": "ISC",
 	"author": "Kevin Munson",
-	"private": true,
 	"repository": "Kitick/KSL",
 	"files": ["dist", "README.md"],
 	"exports": {

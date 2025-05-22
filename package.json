@@ -1,7 +1,8 @@
 {
 	"name": "ksl",
-	"version": "0.7.1",
+	"version": "0.7.2",
 	"description": "Kitick's Standard Library",
+	"type": "module",
 	"private": true,
 	"license": "ISC",
 	"author": "Kevin Munson",

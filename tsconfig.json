@@ -6,6 +6,7 @@
 		"moduleResolution": "bundler",
 		"rootDir": "./src",
 		"outDir": "./dist",
+		"removeComments": true,
 		"declaration": true,
 		"strict": true,
 		"alwaysStrict": true,

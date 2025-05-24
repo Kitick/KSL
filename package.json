@@ -1,12 +1,12 @@
 {
 	"name": "ksl",
-	"version": "0.7.2",
+	"version": "0.8.0",
 	"description": "Kitick's Standard Library",
+	"author": "Kevin Munson",
+	"license": "ISC",
+	"repository": "Kitick/KSL",
 	"type": "module",
 	"private": true,
-	"license": "ISC",
-	"author": "Kevin Munson",
-	"repository": "Kitick/KSL",
 	"files": ["dist", "README.md"],
 	"exports": {
 		"./math": {

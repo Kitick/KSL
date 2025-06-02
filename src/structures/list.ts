@@ -14,22 +14,37 @@ export class List<T> {
 		return index;
 	}
 
-	get(index: number): T | undefined {
+	get(index: number): T {
 		index = this.checkIndex(index);
 		return this.data[index];
 	}
 
-	set(index: number, item: T): void {
+	tryGet(index: number): T | undefined {
+		try{ return this.get(index); }
+		catch { return undefined; }
+	}
+
+	insert(item: T, index: number): void {
 		index = this.checkIndex(index);
 		this.data[index] = item;
 	}
 
-	del(index: number): T | undefined {
+	remove(index: number): T | undefined {
 		index = this.checkIndex(index);
 		return this.data.splice(index, 1)[0];
 	}
 
 	add(item: T): number {
 		return this.data.push(item) - 1;
+	}
+
+	clear(): void {
+		this.data = [];
+	}
+
+	*[Symbol.iterator](): Iterator<T> {
+		for(const item of this.data){
+			yield item;
+		}
 	}
 }

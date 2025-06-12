@@ -1,5 +1,5 @@
 export class Queue<T> {
-	private data: Array<T> = [];
+	protected data: Array<T> = [];
 
 	get size(): number { return this.data.length; }
 
@@ -15,5 +15,20 @@ export class Queue<T> {
 
 	peek(): T | undefined {
 		return this.data[0];
+	}
+}
+
+export class PriorityQueue<T> extends Queue<T> {
+	private comparator: (a: T, b: T) => number;
+
+	constructor(comparator: (a: T, b: T) => number) {
+		super();
+		this.comparator = comparator;
+	}
+
+	enqueue(item: T): number {
+		this.data.push(item);
+		this.data.sort(this.comparator);
+		return this.data.length;
 	}
 }

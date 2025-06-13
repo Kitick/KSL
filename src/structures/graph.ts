@@ -32,10 +32,6 @@ export class Graph<V, E> {
 		}
 	}
 
-	getVertices(): Set<V> {
-		return new Set(this.nodes.keys());
-	}
-
 	getVertexCount(): number { return this.nodes.size; }
 
 	getEdgeCount(): number {
@@ -44,6 +40,14 @@ export class Graph<V, E> {
 			count += edges.size;
 		}
 		return count;
+	}
+
+	getVertices(): Set<V> {
+		return new Set(this.nodes.keys());
+	}
+
+	getNeighbors(vertex: V): Set<V> {
+		return new Set(this.nodes.get(vertex)?.keys());
 	}
 
 	addVertex(vertex: V): boolean {
@@ -109,10 +113,25 @@ export class Graph<V, E> {
 		let removed = this.nodes.get(from)?.delete(to) ?? false;
 
 		if(bidirectional){
-			removed ||= this.nodes.get(to)?.delete(from) ?? false;
+			const removed2 = this.nodes.get(to)?.delete(from) ?? false;
+			removed ||= removed2;
 		}
 
 		return removed;
+	}
+
+	subGraph(vertices: Iterable<V>): Graph<V, E> {
+		const result = new Graph<V, E>(vertices);
+
+		for(const vertex of vertices){
+			for(const [neighbor, edge] of this.neighbors(vertex)){
+				if(!result.hasVertex(neighbor)){ continue; }
+
+				result.setEdge(vertex, neighbor, edge);
+			}
+		}
+
+		return result;
 	}
 
 	getInDegree(vertex: V): number {
@@ -135,5 +154,13 @@ export class Graph<V, E> {
 
 	clear(): void {
 		this.nodes.clear();
+	}
+
+	toString(): string {
+		const edges: string[] = [];
+		for(const [from, to, edge] of this.edges()){
+			edges.push(`${from} -- ${edge} --> ${to}`);
+		}
+		return `Graph with ${this.getVertexCount()} vertices and ${this.getEdgeCount()} edges:\n` + edges.join("\n");
 	}
 }

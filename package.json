@@ -1,6 +1,6 @@
 {
 	"name": "ksl",
-	"version": "0.10.0",
+	"version": "0.10.1",
 	"description": "Kitick's Standard Library",
 	"author": "Kevin Munson",
 	"license": "ISC",
@@ -12,6 +12,10 @@
 		"README.md"
 	],
 	"exports": {
+		"./algorithms": {
+			"import": "./dist/algorithms/index.js",
+			"types": "./dist/algorithms/index.d.ts"
+		},
 		"./backend": {
 			"import": "./dist/backend/index.js",
 			"types": "./dist/backend/index.d.ts"

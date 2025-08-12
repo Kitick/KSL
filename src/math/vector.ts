@@ -1,18 +1,16 @@
-import * as Unit from "./constants";
-
-type Length<A extends Array<any>> = A["length"];
+type Length<A extends any[]> = A["length"];
 
 export class Vector<N extends number> {
-	private data: Array<number>;
+	private data: number[];
 
-	private constructor(data: Array<number>) {
+	private constructor(data: number[]) {
 		this.data = data;
 	}
 
-	static new<A extends Array<number>>(...data: A): Vector<Length<A>>;
-	static new<N extends number>(...data: Array<number>): Vector<N>;
+	static new<A extends number[]>(...data: A): Vector<Length<A>>;
+	static new<N extends number>(...data: number[]): Vector<N>;
 
-	static new<A extends Array<number>>(...data: A): Vector<Length<A>> {
+	static new<A extends number[]>(...data: A): Vector<Length<A>> {
 		return new Vector(data);
 	}
 
@@ -20,13 +18,17 @@ export class Vector<N extends number> {
 		return new Vector([...this.data]);
 	}
 
-	static zero<N extends number>(n: N): Vector<N> {
-		return new Vector(new Array(n).fill(0));
+	static fill<K extends number>(n: K, value: number = 0): Vector<K> {
+		return new Vector(new Array(n).fill(value));
+	}
+
+	static zero<K extends number>(n: K): Vector<K> {
+		return Vector.fill(n, 0);
 	}
 
 	get size(): N { return this.data.length as N; }
 
-	private static bitwise<T>(a: Array<T>, b: Array<T>, fn: (a: T, b: T, i: number) => T): Array<T> {
+	private static zipmap<T>(a: T[], b: T[], fn: (a: T, b: T, i: number) => T): T[] {
 		const n = Math.max(a.length, b.length);
 		const result: T[] = new Array(n);
 
@@ -38,47 +40,33 @@ export class Vector<N extends number> {
 	}
 
 	negate(): Vector<N> {
-		const data = Vector.bitwise(this.data, this.data, i => -i);
-		return new Vector(data);
+		return new Vector(this.data.map(i => -i));
 	}
-
 	inverse(): Vector<N> {
-		const data = Vector.bitwise(this.data, this.data, i => 1 / i);
-		return new Vector(data);
+		return new Vector(this.data.map(i => 1 / i));
 	}
-
 	scale(scalar: number): Vector<N> {
-		const data = Vector.bitwise(this.data, this.data, i => i * scalar);
-		return new Vector(data);
+		return new Vector(this.data.map(i => i * scalar));
 	}
 
 	add(other: Vector<N>): Vector<N> {
-		const data = Vector.bitwise(this.data, other.data, (i, i2) => i + i2);
-		return new Vector(data);
+		return new Vector(Vector.zipmap(this.data, other.data, (i, i2) => i + i2));
 	}
-
 	sub(other: Vector<N>): Vector<N> {
-		const data = Vector.bitwise(this.data, other.data, (i, i2) => i - i2);
-		return new Vector(data);
+		return new Vector(Vector.zipmap(this.data, other.data, (i, i2) => i - i2));
+	}
+	multiply(other: Vector<N>): Vector<N> {
+		return new Vector(Vector.zipmap(this.data, other.data, (i, i2) => i * i2));
+	}
+	divide(other: Vector<N>): Vector<N> {
+		return new Vector(Vector.zipmap(this.data, other.data, (i, i2) => i / i2));
 	}
 
-	mul(other: Vector<N>): Vector<N> {
-		const data = Vector.bitwise(this.data, other.data, (i, i2) => i * i2);
-		return new Vector(data);
-	}
-
-	div(other: Vector<N>): Vector<N> {
-		const data = Vector.bitwise(this.data, other.data, (i, i2) => i / i2);
-		return new Vector(data);
-	}
-
-	project<N extends number>(dim: N): Vector<N> {
+	resize<K extends number>(dim: K): Vector<K> {
 		const data = new Array(dim);
-
 		for(let i = 0; i < dim; i++){
 			data[i] = this.data[i] ?? 0;
 		}
-
 		return new Vector(data);
 	}
 
@@ -125,43 +113,77 @@ export class Vector<N extends number> {
 		for(let i = 0, n = this.data.length; i < n; i++){
 			sum += this.data[i] * other.data[i];
 		}
-
 		return sum;
 	}
 
-	angle(other: Vector<N>): Unit.RAD {
+	angleTo(other: Vector<N>): number {
 		const dot = this.dot(other);
 		const mag = this.magnitude() * other.magnitude();
 
-		if(mag === 0){ return 0 as Unit.RAD; }
+		if(mag === 0){ return 0; }
 
-		return Math.acos(dot / mag) as Unit.RAD;
+		return Math.acos(dot / mag);
 	}
 
-	equals(other: Vector<N>): boolean {
-		for(let i = 0, n = this.data.length; i < n; i++){
-			if(this.data[i] !== other.data[i]){ return false; }
-		}
+	projectOnto(other: Vector<N>): Vector<N> {
+		const dot = this.dot(other);
+		const mag = other.magnitude();
 
-		return true;
+		if(mag === 0){ return this.copy(); }
+
+		return other.scale(dot / (mag * mag));
 	}
 
-	polar(this: Vector<1 | 2 | 3>): {mag: number, theta: Unit.RAD, phi: Unit.RAD} {
+	lerp(other: Vector<N>, t: number): Vector<N> {
+		return this.add(other.sub(this).scale(t));
+	}
+
+	toPolar(this: Vector<1 | 2 | 3>): { mag: number, theta: number, phi: number } {
 		let [ x, y, z ] = this.data;
 
 		if(this.size < 3){ z = 0; }
 		if(this.size < 2){ y = 0; }
 
-		const x2 = x * x; const y2 = y * y; const z2 = z * z;
+		const x2y2 = x * x + y * y;
+		const z2 = z * z;
 
-		const mag = Math.sqrt(x2 + y2 + z2);
-		const theta = Math.atan2(y, x) as Unit.RAD;
-		const phi = Math.atan2(z, Math.sqrt(x2 + y2)) as Unit.RAD;
+		const mag = Math.sqrt(x2y2 + z2);
+		const theta = Math.atan2(y, x);
+		const phi = Math.atan2(z, Math.sqrt(x2y2));
 
 		return { mag, theta, phi };
 	}
 
+	static fromPolar(vector: { mag: number, theta: number }): Vector<2>;
+	static fromPolar(vector: { mag: number, theta: number, phi: number }): Vector<3>;
+
+	static fromPolar(vector: { mag: number, theta: number, phi?: number }): Vector<2 | 3> {
+		const { mag, theta, phi } = vector;
+
+		let x = mag * Math.cos(theta);
+		let y = mag * Math.sin(theta);
+
+		if(phi === undefined){ return new Vector([x, y]); }
+
+		const cosPhi = Math.cos(phi);
+		x *= cosPhi;
+		y *= cosPhi;
+
+		const z = mag * Math.sin(phi);
+
+		return new Vector([x, y, z]);
+	}
+
+	equals(other: Vector<N>, epsilon = Number.EPSILON): boolean {
+		if(this.size !== other.size){ return false; }
+
+		for(let i = 0, n = this.data.length; i < n; i++){
+			if(Math.abs(this.data[i] - other.data[i]) > epsilon){ return false; }
+		}
+		return true;
+	}
+
 	toString(): string {
-		return this.data.join(", ");
+		return `(${this.data.join(", ")})`;
 	}
 }

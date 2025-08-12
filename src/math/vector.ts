@@ -18,7 +18,7 @@ export class Vector<N extends number> {
 		return new Vector([...this.data]);
 	}
 
-	static fill<K extends number>(n: K, value: number = 0): Vector<K> {
+	static fill<K extends number>(n: K, value: number): Vector<K> {
 		return new Vector(new Array(n).fill(value));
 	}
 
@@ -138,20 +138,48 @@ export class Vector<N extends number> {
 		return this.add(other.sub(this).scale(t));
 	}
 
-	toPolar(this: Vector<1 | 2 | 3>): { mag: number, theta: number, phi: number } {
-		let [ x, y, z ] = this.data;
+	toCart(this: Vector<1>): { x: number };
+	toCart(this: Vector<2>): { x: number, y: number };
+	toCart(this: Vector<3>): { x: number, y: number, z: number };
+	toCart(this: Vector<4>): { x: number, y: number, z: number, w: number };
 
-		if(this.size < 3){ z = 0; }
-		if(this.size < 2){ y = 0; }
+	toCart(this: Vector<1 | 2 | 3 | 4>): { x: number, y?: number, z?: number, w?: number } {
+		const [ x, y, z, w ] = this.data;
 
-		const x2y2 = x * x + y * y;
-		const z2 = z * z;
+		if(this.size === 1){ return { x }; }
+		if(this.size === 2){ return { x, y }; }
+		if(this.size === 3){ return { x, y, z }; }
+		return { x, y, z, w };
+	}
 
-		const mag = Math.sqrt(x2y2 + z2);
+	toPolar(this: Vector<2>): { mag: number, theta: number };
+	toPolar(this: Vector<3>): { mag: number, theta: number, phi: number };
+
+	toPolar(this: Vector<2 | 3>): { mag: number, theta: number, phi?: number } {
+		const [ x, y, z ] = this.data;
+
+		const mag = this.magnitude();
 		const theta = Math.atan2(y, x);
-		const phi = Math.atan2(z, Math.sqrt(x2y2));
+
+		if(this.size === 2){ return { mag, theta }; }
+
+		const phi = Math.atan2(z, Math.sqrt(x * x + y * y));
 
 		return { mag, theta, phi };
+	}
+
+	static fromCart(vector: { x: number }): Vector<1>;
+	static fromCart(vector: { x: number, y: number }): Vector<2>;
+	static fromCart(vector: { x: number, y: number, z: number }): Vector<3>;
+	static fromCart(vector: { x: number, y: number, z: number, w: number }): Vector<4>;
+
+	static fromCart(vector: { x: number, y?: number, z?: number, w?: number }): Vector<1 | 2 | 3 | 4> {
+		const { x, y, z, w } = vector;
+
+		if(w !== undefined){ return new Vector([x, y!, z!, w]); }
+		if(z !== undefined){ return new Vector([x, y!, z]); }
+		if(y !== undefined){ return new Vector([x, y]); }
+		return new Vector([x]);
 	}
 
 	static fromPolar(vector: { mag: number, theta: number }): Vector<2>;
@@ -174,7 +202,7 @@ export class Vector<N extends number> {
 		return new Vector([x, y, z]);
 	}
 
-	equals(other: Vector<N>, epsilon = Number.EPSILON): boolean {
+	equals(other: Vector<N>, epsilon: number = Number.EPSILON): boolean {
 		if(this.size !== other.size){ return false; }
 
 		for(let i = 0, n = this.data.length; i < n; i++){

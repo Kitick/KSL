@@ -18,6 +18,8 @@ function traversal<V, E>(
         visit(node);
 
         for(const neighbor of graph.neighbors(node)){
+			if(visited.has(neighbor[0])){ continue; }
+
 			nodes.push(neighbor[0]);
         }
     }

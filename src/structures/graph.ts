@@ -2,10 +2,10 @@ export class Graph<V, E> {
 	private nodes: Map<V, Map<V, E>> = new Map();
 
 	constructor(vertices?: Iterable<V>) {
-		if(vertices !== undefined){
-			for(const vertex of vertices){
-				this.addVertex(vertex);
-			}
+		if(vertices === undefined){ return; }
+
+		for(const vertex of vertices){
+			this.addVertex(vertex);
 		}
 	}
 

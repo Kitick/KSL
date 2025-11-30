@@ -1,6 +1,8 @@
 type Length<A extends any[]> = A["length"];
 
 export class Vector<N extends number> {
+	public static immutable = true;
+
 	private data: number[];
 
 	private constructor(data: number[]) {
@@ -39,27 +41,34 @@ export class Vector<N extends number> {
 		return result;
 	}
 
+	private result(data: number[]): Vector<N> {
+		if(Vector.immutable){ return new Vector(data); }
+
+		this.data = data;
+		return this;
+	}
+
 	negate(): Vector<N> {
-		return new Vector(this.data.map(i => -i));
+		return this.result(this.data.map(i => -i));
 	}
 	inverse(): Vector<N> {
-		return new Vector(this.data.map(i => 1 / i));
+		return this.result(this.data.map(i => 1 / i));
 	}
 	scale(scalar: number): Vector<N> {
-		return new Vector(this.data.map(i => i * scalar));
+		return this.result(this.data.map(i => i * scalar));
 	}
 
 	add(other: Vector<N>): Vector<N> {
-		return new Vector(Vector.zipmap(this.data, other.data, (i, i2) => i + i2));
+		return this.result(Vector.zipmap(this.data, other.data, (i, i2) => i + i2));
 	}
 	sub(other: Vector<N>): Vector<N> {
-		return new Vector(Vector.zipmap(this.data, other.data, (i, i2) => i - i2));
+		return this.result(Vector.zipmap(this.data, other.data, (i, i2) => i - i2));
 	}
 	multiply(other: Vector<N>): Vector<N> {
-		return new Vector(Vector.zipmap(this.data, other.data, (i, i2) => i * i2));
+		return this.result(Vector.zipmap(this.data, other.data, (i, i2) => i * i2));
 	}
 	divide(other: Vector<N>): Vector<N> {
-		return new Vector(Vector.zipmap(this.data, other.data, (i, i2) => i / i2));
+		return this.result(Vector.zipmap(this.data, other.data, (i, i2) => i / i2));
 	}
 
 	resize<K extends number>(dim: K): Vector<K> {
@@ -77,7 +86,7 @@ export class Vector<N extends number> {
 
 	normalize(value: number = 1): Vector<N> {
 		const mag = this.magnitude();
-		if(mag === 0){ return this.copy(); }
+		if(mag === 0){ return this.result(this.data); }
 
 		return this.scale(value / mag);
 	}

@@ -1,6 +1,6 @@
 {
 	"name": "ksl",
-	"version": "0.10.3",
+	"version": "0.11.0",
 	"description": "Kitick's Standard Library",
 	"author": "Kevin Munson",
 	"license": "ISC",
@@ -15,10 +15,6 @@
 		"./algorithms": {
 			"import": "./dist/algorithms/index.js",
 			"types": "./dist/algorithms/index.d.ts"
-		},
-		"./backend": {
-			"import": "./dist/backend/index.js",
-			"types": "./dist/backend/index.d.ts"
 		},
 		"./math": {
 			"import": "./dist/math/index.js",
@@ -37,8 +33,8 @@
 		"prepare": "tsc"
 	},
 	"devDependencies": {
-		"@types/node": "^22.15.31",
+		"@types/node": "^22.19.6",
 		"ts-brand": "^0.2.0",
-		"typescript": "^5.8.3"
+		"typescript": "^5.9.3"
 	}
 }
